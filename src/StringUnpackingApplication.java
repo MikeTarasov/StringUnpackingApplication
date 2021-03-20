@@ -1,7 +1,4 @@
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StringUnpackingApplication {
@@ -23,33 +20,50 @@ public class StringUnpackingApplication {
      * Дополнительное задание:
      * Проверить входную строку на валидность.
      */
+    private static List<Integer> multipliers = new ArrayList<>();
 
     public static void main(String[] args) {
+        runMe(args);
+    }
 
+    public static void runMe(String[] args) {
+        String input;
+        if (args.length == 0) {
+            input = manualInput();
+        } else {
+            input = args[0];
+            if (isInputInvalid(input)) {
+                System.out.println("Invalid argument!");
+                input = manualInput();
+            }
+        }
 
-//        String input = "a2[b3[c]d]4[efg]5[hi]j";
-
-        String input = getInput();
-
-        String result = unpackingString(getReversedMultipliersList(input), input);
+        String result = unpackingString(input);
         System.out.println(result);
     }
 
-    private static String getInput() {
+    private static String manualInput() {
         Scanner scanner = new Scanner(System.in);
         String input;
-        do {
-            System.out.println("Enter the packed string! Examples: 3[xyz]4[xy]z 2[3[x]y]");
-        } while (!validateInput(input = scanner.nextLine()));
+        while (true) {
+            System.out.println("Enter a valid packed string! Example: 3[xyz]4[xy]z2[3[x]y]");
+            input = scanner.nextLine();
+
+            if (isInputInvalid(input)) {
+                System.out.println("Wrong input!");
+            } else {
+                break;
+            }
+        }
         return input;
     }
 
-    private static boolean validateInput(String input) {
+    private static boolean isInputInvalid(String input) {
         String brackets = input.replaceAll("[0-9a-zA-Z]", "");
         int bracketsLength = brackets.length();
 
         if (bracketsLength == 0) {
-            return false;
+            return true;
         } else {
             while (true) {
                 brackets = brackets.replaceAll("(\\[\\])", "");
@@ -57,13 +71,28 @@ public class StringUnpackingApplication {
                 if (brackets.length() == 0) {
                     break;
                 } else if (brackets.length() == bracketsLength) {
-                    return false;
-                } else {
-                    bracketsLength = brackets.length();
+                    return true;
                 }
+                bracketsLength = brackets.length();
             }
         }
-        return true;
+
+        multipliers = getReversedMultipliersList(input);
+        if (multipliers.isEmpty()) {
+            return true;
+        }
+
+        char[] inputChars = input.toCharArray();
+        for (int i = 0; i < inputChars.length; i++) {
+            if (inputChars[i] == '[' && (i == 0 || inputChars[i - 1] < '0' || inputChars[i - 1] > '9')) {
+                return true;
+            } else if (inputChars[i] >= '0' && inputChars[i] <= '9' &&
+                    (inputChars[i + 1] != '[' || (inputChars[i + 1] < '0' && inputChars[i + 1] > '9'))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static List<Integer> getReversedMultipliersList(String input) {
@@ -72,7 +101,7 @@ public class StringUnpackingApplication {
                 .map(Integer::parseInt).sorted(Collections.reverseOrder()).collect(Collectors.toList());
     }
 
-    private static String unpackingString(List<Integer> multipliers, String input) {
+    private static String unpackingString(String input) {
         for (int multiplier : multipliers) {
 
             String multiplierString = Integer.toString(multiplier);
