@@ -59,6 +59,10 @@ public class StringUnpackingApplication {
     }
 
     private static boolean isInputInvalid(String input) {
+        return isBracketsInvalid(input) || isMultipliersInvalid(input) || isSequenceInvalid(input);
+    }
+
+    private static boolean isBracketsInvalid(String input) {
         String brackets = input.replaceAll("[0-9a-zA-Z]", "");
         int bracketsLength = brackets.length();
 
@@ -76,32 +80,40 @@ public class StringUnpackingApplication {
                 bracketsLength = brackets.length();
             }
         }
+        return false;
+    }
 
+    private static boolean isMultipliersInvalid(String input) {
         multipliers = getReversedMultipliersList(input);
-        if (multipliers.isEmpty()) {
-            return true;
-        }
+        return multipliers.isEmpty();
+    }
 
+    private static boolean isSequenceInvalid(String input) {
         char[] inputChars = input.toCharArray();
         for (int i = 0; i < inputChars.length; i++) {
             if (inputChars[i] == '[' && (i == 0 || inputChars[i - 1] < '0' || inputChars[i - 1] > '9')) {
                 return true;
             } else if (inputChars[i] >= '0' && inputChars[i] <= '9' &&
-                    (inputChars[i + 1] != '[' || (inputChars[i + 1] < '0' && inputChars[i + 1] > '9'))) {
+                    (inputChars[i + 1] != '[' && inputChars[i + 1] < '0' && inputChars[i + 1] > '9')) {
                 return true;
             }
         }
-
         return false;
     }
 
     private static List<Integer> getReversedMultipliersList(String input) {
-        return Arrays.stream(
-                input.replaceAll("[^0-9]", " ").trim().split("\\s+"))
-                .map(Integer::parseInt).sorted(Collections.reverseOrder()).collect(Collectors.toList());
+        List<String> multiplierArrayString = Arrays.stream(input.replaceAll("[^0-9]", " ").trim()
+                .split("\\s+")).collect(Collectors.toList());
+        return multiplierArrayString.get(0).isEmpty() ? new ArrayList<>() :
+                multiplierArrayString.stream().map(Integer::parseInt).sorted(Collections.reverseOrder())
+                        .collect(Collectors.toList());
     }
 
     private static String unpackingString(String input) {
+        if (multipliers.isEmpty()) {
+            multipliers = getReversedMultipliersList(input);
+        }
+
         for (int multiplier : multipliers) {
 
             String multiplierString = Integer.toString(multiplier);
